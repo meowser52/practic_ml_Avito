@@ -93,10 +93,10 @@ def _require(value: str | None, name: str) -> str:
 
 
 def _run_dir(workdir: Path, run_key: str) -> Path:
-    safe = re.sub(r"[^A-Za-z0-9._-]+", "_", run_key).strip("._")
-    if not safe:
-        raise ValueError(f"run_key {run_key!r} gives an empty directory name")
-    return workdir / "runs" / safe
+    """Каталог запуска: читаемое имя из run_key и короткий хеш, чтобы разные run_key не совпали."""
+    safe = re.sub(r"[^A-Za-z0-9._-]+", "_", run_key).strip("._") or "run"
+    suffix = hashlib.sha256(run_key.encode("utf-8")).hexdigest()[:8]
+    return workdir / "runs" / f"{safe}-{suffix}"
 
 
 def _sha256_bytes(data: bytes) -> str:
