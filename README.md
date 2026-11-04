@@ -10,8 +10,7 @@ DAG `olist_training` раз в неделю выгружает заказы из
 git clone <URL репозитория> olist-homework
 cd olist-homework
 cp .env.example .env
-docker compose up -d --build
-docker compose ps    # source, mlflow, airflow: healthy
+docker compose up -d --build --wait    # ждёт, пока source, mlflow и airflow станут healthy
 ```
 
 | Интерфейс | Адрес |
@@ -51,7 +50,7 @@ docker compose exec -T airflow python -m check_model --run-id b54e24e7b5b64a38b5
 
 ## Этапы
 
-Файлы запуска лежат в общем каталоге `/opt/olist/work/runs/<run_id запуска Airflow>/`, через XCom идут только пути, числа строк и SHA256.
+У каждого запуска Airflow свой каталог в `/opt/olist/work/runs/`: `run_id` с заменой `:` и `+` на `_` и 8 символов SHA256 от `run_id`. Точный путь к снимку записан в теге `snapshot_path` MLflow run. Через XCom идут только пути, числа строк и SHA256.
 
 - **extract** — `COPY` таблицы `public.orders` (13 столбцов, сортировка по времени покупки и `order_id`) в `snapshot.csv`. Повтор того же запуска атомарно перезаписывает файл, у другого запуска свой каталог, поэтому строки не копятся. При ошибке БД — 3 повтора через 30 секунд.
 - **validate** — только чтение CSV: есть строки, все 13 столбцов без дублей, `order_id` заполнен и уникален, даты в ISO 8601, числа конечны, `late` равен 0 или 1, категории заполнены. Ошибка — `SnapshotValidationError` со списком нарушений; `retries=0`.
@@ -80,10 +79,11 @@ DAG: `@weekly`, `catchup=False`, `max_active_runs=1`, таймаут у кажд
 ## Перезапуск
 
 ```bash
-docker compose restart                                   # данные, история Airflow и модели сохраняются
-docker compose up -d --force-recreate --no-deps mlflow   # новый контейнер MLflow, прежний volume mlflow-data
-docker compose down                                      # без -v volumes остаются
+docker compose restart
+docker compose up -d --force-recreate --no-deps mlflow
 ```
+
+После обеих команд история Airflow, run, метрики и модели MLflow сохраняются: SQLite и артефакты лежат в volume `mlflow-data`. `docker compose down` без `-v` тоже не трогает volumes.
 
 ## Файлы
 
