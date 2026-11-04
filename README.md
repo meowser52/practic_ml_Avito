@@ -7,7 +7,7 @@ DAG `olist_training` раз в неделю выгружает заказы из
 Нужны Git и Docker с Compose v2 (для Docker: 4 ГБ RAM, 2 CPU). Первая сборка образа ставит torch и занимает несколько минут.
 
 ```bash
-git clone <URL репозитория> olist-homework
+git clone https://github.com/meowser52/practic_ml_Avito.git olist-homework
 cd olist-homework
 cp .env.example .env
 docker compose up -d --build --wait    # ждёт, пока source, mlflow и airflow станут healthy
