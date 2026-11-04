@@ -9,3 +9,9 @@ work/
 outputs/
 *.log
 .DS_Store
+# Local MLflow runs and editor settings
+mlruns/
+mlartifacts/
+*.db
+.idea/
+.vscode/
