@@ -1,0 +1,6 @@
+apache-airflow==3.3.2
+numpy==2.4.6
+pandas==3.0.6
+scikit-learn==1.9.1
+mlflow-skinny==3.16.1
+psycopg[binary]==3.3.1

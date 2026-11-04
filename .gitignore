@@ -1,0 +1,11 @@
+# Local configuration and results, not the supplied fixed data snapshot
+.env*
+!.env.example
+.venv*/
+__pycache__/
+.pytest_cache/
+.ipynb_checkpoints/
+work/
+outputs/
+*.log
+.DS_Store

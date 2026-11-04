@@ -1,0 +1,9 @@
+*
+!Dockerfile
+!requirements.txt
+!src/
+!src/**
+!dags/
+!dags/**
+**/__pycache__/
+**/.env*

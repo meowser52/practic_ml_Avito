@@ -1,0 +1,58 @@
+{
+  "file": "olist_orders.csv.gz",
+  "sha256": "ca625a4794414d2649970598aed2e802ec77cf8f3fbe3c1608ae6793cd994a81",
+  "rows": 21663,
+  "columns": [
+    "order_id",
+    "order_purchase_timestamp",
+    "price",
+    "freight",
+    "weight",
+    "n_items",
+    "installments",
+    "est_days",
+    "customer_state",
+    "seller_state",
+    "category",
+    "payment_type",
+    "late"
+  ],
+  "date_min": "2016-09-15T12:16:38",
+  "date_max": "2017-08-27T23:55:53",
+  "source_identifier": "olistbr/brazilian-ecommerce",
+  "attribution": "Olist Brazilian E-Commerce Public Dataset, Olist and collaborators (Kaggle)",
+  "license": "CC-BY-NC-SA-4.0",
+  "derived_dataset_license": "CC-BY-NC-SA-4.0",
+  "selection": "Delivered orders in existing analyst_export (purchases before 2017-08-28), with observed delivery/estimated/purchase dates and order items; no sampling or synthetic records.",
+  "target": "late = normalized delivery calendar date > promised estimated delivery date; non-late otherwise. Only target creation uses delivery outcome.",
+  "default_cutoff": "2017-07-31",
+  "train_rows": 17928,
+  "validation_rows": 3735,
+  "late_rows": 750,
+  "source_files": [
+    {
+      "path": "analyst_export/orders.csv",
+      "sha256": "3481c0a65ab78eff8fc22011369cabac3a3912a5ae273c791e051e3870e98f57"
+    },
+    {
+      "path": "analyst_export/order_items.csv",
+      "sha256": "e72ab431664a06a4c80656898abdc8ef5281cf4b5e942bf869ac57b9d39bcf9a"
+    },
+    {
+      "path": "analyst_export/payments.csv",
+      "sha256": "91c7105af3064604e942c7fc63416cc06e15f8e58fe1314032e396a4680d65f6"
+    },
+    {
+      "path": "analyst_export/customers.csv",
+      "sha256": "5da00d473ccc69ce1f0683331684f0396ca0d57f0aaf8c8ec0742298fa100c66"
+    },
+    {
+      "path": "dims/products.csv",
+      "sha256": "bb8cec5f52adc4cc404a55db5297bc64acefc7e093a2c97a4fc93add448ebf39"
+    },
+    {
+      "path": "dims/sellers.csv",
+      "sha256": "ef556bf03c06574c172a27195ed669472f39bdec1d5af6819916045d7a1c9c65"
+    }
+  ]
+}

@@ -1,0 +1,74 @@
+# Supplied local infrastructure. Add your MLflow service as described in ASSIGNMENT.md.
+services:
+  source:
+    image: postgres:15@sha256:c99dd5066e988cd61a72ffe962da08e277eecaba000bbdda0bdaf9f63b56c174
+    environment:
+      POSTGRES_USER: olist
+      POSTGRES_PASSWORD: ${SOURCE_PASSWORD:?Copy .env.example to .env first}
+      POSTGRES_DB: olist
+    volumes:
+      - source-data:/var/lib/postgresql/data
+      - ./data/olist_orders.csv.gz:/seed/olist_orders.csv.gz:ro
+      - ./infra/source/01-load.sh:/docker-entrypoint-initdb.d/01-load.sh:ro
+    mem_limit: 256m
+    cpus: 0.5
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -h 127.0.0.1 -U olist -d olist && psql -U olist -d olist -tAc "SELECT count(*) > 0 FROM orders" | grep -q t']
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  airflow:
+    build: .
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: sqlite:////opt/airflow/airflow.db
+      AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
+      AIRFLOW__CORE__PARALLELISM: '1'
+      AIRFLOW__CORE__MAX_ACTIVE_TASKS_PER_DAG: '1'
+      AIRFLOW__CORE__SIMPLE_AUTH_MANAGER_ALL_ADMINS: 'true'
+      AIRFLOW__API__WORKERS: '1'
+      AIRFLOW__API__HOST: 0.0.0.0
+      AIRFLOW__CORE__EXECUTION_API_SERVER_URL: http://localhost:8080/execution/
+      AIRFLOW__DAG_PROCESSOR__PARSING_PROCESSES: '1'
+      AIRFLOW__DAG_PROCESSOR__MIN_FILE_PROCESS_INTERVAL: '10'
+      AIRFLOW__SCHEDULER__PARSING_CLEANUP_INTERVAL: '15'
+      DATABASE_URL: postgresql+psycopg://olist:${SOURCE_PASSWORD}@source:5432/olist
+      MLFLOW_TRACKING_URI: http://mlflow:5000
+      MLFLOW_HTTP_REQUEST_TIMEOUT: '10'
+      MLFLOW_HTTP_REQUEST_MAX_RETRIES: '0'
+      OLIST_WORKDIR: /opt/olist/work
+      OLIST_DATASET: /opt/olist/data/olist_orders.csv.gz
+      OLIST_EPOCHS: ${OLIST_EPOCHS:-5}
+      OLIST_SEED: ${OLIST_SEED:-42}
+      OLIST_CUTOFF: ${OLIST_CUTOFF:-2017-07-31}
+      OMP_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+      OPENBLAS_NUM_THREADS: '1'
+      NO_PROXY: localhost,127.0.0.1,source,mlflow,airflow
+    command: standalone
+    ports:
+      - '127.0.0.1:${AIRFLOW_PORT:-8080}:8080'
+    volumes:
+      - airflow-home:/opt/airflow
+      - work:/opt/olist/work
+      - ./src:/opt/olist/src:ro
+      - ./dags:/opt/airflow/dags:ro
+      - ./data:/opt/olist/data:ro
+      - ./prototype.ipynb:/opt/olist/prototype.ipynb:ro
+    mem_limit: 2560m
+    cpus: 2
+    depends_on:
+      source:
+        condition: service_healthy
+    healthcheck:
+      test: [CMD, python, -c, 'import urllib.request; urllib.request.urlopen("http://localhost:8080/api/v2/monitor/health", timeout=5)']
+      interval: 15s
+      timeout: 10s
+      start_period: 90s
+      retries: 20
+
+volumes:
+  source-data:
+  airflow-home:
+  work:
